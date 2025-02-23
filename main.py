@@ -6,7 +6,7 @@ init(autoreset=True)
 def print_colored(text, color=Fore.WHITE):
     print(color + text)
 
-print_colored("Welcome to SupplyTheory v2.0", Fore.GREEN)
+print_colored("Welcome to SupplyTheory v3.1", Fore.GREEN)
 print_colored("Type .help to view all commands.", Fore.YELLOW)
 
 data = {
