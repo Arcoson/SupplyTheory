@@ -1,185 +1,210 @@
-print("Welcome to SupplyTheory v2.0\nType .help to view all commands.")
-initcmd = input("$: ")
-chain = ''
+from colorama import Fore, Style, init
+import json
+
+init(autoreset=True)
+
+def print_colored(text, color=Fore.WHITE):
+    print(color + text)
+
+print_colored("Welcome to SupplyTheory v2.0", Fore.GREEN)
+print_colored("Type .help to view all commands.", Fore.YELLOW)
+
+data = {
+    "chains": {},
+    "biomes": {}
+}
+
+def save_data():
+    with open('data.json', 'w') as f:
+        json.dump(data, f)
+
+def load_data():
+    global data
+    try:
+        with open('data.json', 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        pass
+
+load_data()
+
 while True:
+    initcmd = input(Fore.CYAN + "$: ").strip()
+
     if initcmd == '.help':
-        print("Commands:\n")
-        print('Create a Chain: .chain')
-        print('Create a Product: {chain}.pro')
-        print('Create Product Details: {chain}.pro.info')
-        print('Delete a Product: {chain}.pro.del | use pro')
-        print('To find a product: {chain}.find | lists all products')
-        print('To export a chain: {chain}.export')
-        print('To import a chain: .import')
-        print('To read a chain: .import.read')
-        print('To list all products: .display')
-        print('Find the number of products: .len')
-        print('To create a biome: .biome | Preset for products')
-        print('To export a biome: .biome.export')
-        print('To import a biome: .biome.import')
-        print('To create a product line: .{chain}.mul.pro | Create multiple products with same type and destination')
-        print('Exit through the command: .break')
-        initcmd = input("$: ")
+        print_colored("Commands:", Fore.YELLOW)
+        print_colored('.chain - Create a Chain', Fore.WHITE)
+        print_colored('{chain}.pro - Create a Product', Fore.WHITE)
+        print_colored('{chain}.pro.info - Add Product Details', Fore.WHITE)
+        print_colored('{chain}.pro.del - Delete a Product', Fore.WHITE)
+        print_colored('{chain}.find - Find a Product', Fore.WHITE)
+        print_colored('{chain}.export - Export a Chain', Fore.WHITE)
+        print_colored('.import - Import a Chain', Fore.WHITE)
+        print_colored('.import.read - Read Imported Data', Fore.WHITE)
+        print_colored('.display - List All Products', Fore.WHITE)
+        print_colored('.len - Count Products', Fore.WHITE)
+        print_colored('.biome - Create a Biome', Fore.WHITE)
+        print_colored('.biome.export - Export a Biome', Fore.WHITE)
+        print_colored('.biome.import - Import a Biome', Fore.WHITE)
+        print_colored('{chain}.mul.pro - Create Multiple Products', Fore.WHITE)
+        print_colored('.break - Exit', Fore.WHITE)
+
     elif initcmd == '.chain':
-        ask_chain = input("Name of Chain: ")
-        chain = ask_chain.strip()
-        chains = []
-        products = []
-        types = []
-        destinations = []
-        info = []
-        chains.append(chain)
-        print("Chain {} has been generated.".format(chain))
-        initcmd = input("$: ")
-    elif initcmd == '{}.pro'.format(chain):
-        ask_product = input("What is the name of the product: ")
-        products.append(ask_product.strip())
-        ask_type_product = input("What is the shipping type of product: ")
-        types.append(ask_type_product.strip())
-        ask_destination = input("What is the final place of product: ")
-        destinations.append(ask_destination.strip())
-        print(f"Product {ask_product} is created.")
-        initcmd = input("$: ")
-    elif initcmd == '{}.pro.info'.format(chain):
-        ask_product_info = input("What is some info of the product: ")
-        info.append(ask_product_info.strip())
-        print(f"Info {ask_product_info} is created.")
-        initcmd = input("$: ")
-    elif initcmd == f'{chain}.pro.del':
-        ask_del_product = input("What is the name of the product: ")
-        if ask_del_product in products:
-            result_rmv = products.index(ask_del_product)
-            types_rmv = types[result_rmv]
-            destinations_rmv = destinations[result_rmv]
-            infos_rmv = info[result_rmv]
-            print(f"Product {ask_del_product} is deleted.")
-            initcmd = input("$: ")
+        chain_name = input(Fore.CYAN + "Name of Chain: ").strip()
+        if chain_name not in data["chains"]:
+            data["chains"][chain_name] = {"products": [], "types": [], "destinations": [], "info": []}
+            print_colored(f"Chain {chain_name} has been generated.", Fore.GREEN)
+            save_data()
         else:
-            print("Product not found.")
-            initcmd = input("$: ")
-            continue
-    elif initcmd == f'{chain}.find':
-        ask_find_product = input("What is the name of the product: ")
-        if ask_find_product in products:
-            result_find = products.index(ask_find_product)
-            types_find = types[result_find]
-            destinations_find = destinations[result_find]
-            infos_find = info[result_find]
-            print(f"Product {ask_find_product} is found.")
-            print(f"Type: {types_find}")
-            print(f"Destination: {destinations_find}")
-            print(f"Info: {infos_find}")
-            initcmd = input("$: ")
+            print_colored("Chain already exists.", Fore.RED)
+
+    elif initcmd.endswith('.pro'):
+        chain = initcmd.split('.')[0]
+        if chain in data["chains"]:
+            product_name = input(Fore.CYAN + "What is the name of the product: ").strip()
+            product_type = input(Fore.CYAN + "What is the shipping type of product: ").strip()
+            destination = input(Fore.CYAN + "What is the final place of product: ").strip()
+            data["chains"][chain]["products"].append(product_name)
+            data["chains"][chain]["types"].append(product_type)
+            data["chains"][chain]["destinations"].append(destination)
+            data["chains"][chain]["info"].append("")
+            print_colored(f"Product {product_name} is created.", Fore.GREEN)
+            save_data()
         else:
-            print("Product not found.")
-            initcmd = input("$: ")
-            continue
-    elif initcmd == f'{chain}.export':
-        print('Exported Chain into a data file.')
-        textfile = open(f"data.txt", "w")
-        for element in products, types, destinations, info:
-            textfile.write(str(element) + '\n')
-        textfile.close()
-        initcmd = input("$: ")
+            print_colored("Chain not found.", Fore.RED)
+
+    elif initcmd.endswith('.pro.info'):
+        chain = initcmd.split('.')[0]
+        if chain in data["chains"]:
+            product_name = input(Fore.CYAN + "What is the name of the product: ").strip()
+            if product_name in data["chains"][chain]["products"]:
+                idx = data["chains"][chain]["products"].index(product_name)
+                info = input(Fore.CYAN + "What is some info of the product: ").strip()
+                data["chains"][chain]["info"][idx] = info
+                print_colored(f"Info for {product_name} is updated.", Fore.GREEN)
+                save_data()
+            else:
+                print_colored("Product not found.", Fore.RED)
+        else:
+            print_colored("Chain not found.", Fore.RED)
+
+    elif initcmd.endswith('.pro.del'):
+        chain = initcmd.split('.')[0]
+        if chain in data["chains"]:
+            product_name = input(Fore.CYAN + "What is the name of the product: ").strip()
+            if product_name in data["chains"][chain]["products"]:
+                idx = data["chains"][chain]["products"].index(product_name)
+                data["chains"][chain]["products"].pop(idx)
+                data["chains"][chain]["types"].pop(idx)
+                data["chains"][chain]["destinations"].pop(idx)
+                data["chains"][chain]["info"].pop(idx)
+                print_colored(f"Product {product_name} is deleted.", Fore.GREEN)
+                save_data()
+            else:
+                print_colored("Product not found.", Fore.RED)
+        else:
+            print_colored("Chain not found.", Fore.RED)
+
+    elif initcmd.endswith('.find'):
+        chain = initcmd.split('.')[0]
+        if chain in data["chains"]:
+            product_name = input(Fore.CYAN + "What is the name of the product: ").strip()
+            if product_name in data["chains"][chain]["products"]:
+                idx = data["chains"][chain]["products"].index(product_name)
+                print_colored(f"Product {product_name} is found.", Fore.GREEN)
+                print_colored(f"Type: {data['chains'][chain]['types'][idx]}", Fore.WHITE)
+                print_colored(f"Destination: {data['chains'][chain]['destinations'][idx]}", Fore.WHITE)
+                print_colored(f"Info: {data['chains'][chain]['info'][idx]}", Fore.WHITE)
+            else:
+                print_colored("Product not found.", Fore.RED)
+        else:
+            print_colored("Chain not found.", Fore.RED)
+
+    elif initcmd.endswith('.export'):
+        chain = initcmd.split('.')[0]
+        if chain in data["chains"]:
+            with open(f"{chain}_export.json", 'w') as f:
+                json.dump(data["chains"][chain], f)
+            print_colored(f"Chain {chain} exported successfully.", Fore.GREEN)
+        else:
+            print_colored("Chain not found.", Fore.RED)
+
     elif initcmd == '.import':
         try:
-            with open('data.txt', 'r') as filetype:
-                file_read = filetype.read()
-                print(file_read)
-                ImportBool = True
-                lines = filetype.readlines()
-                initcmd = input("$: ")
+            chain_name = input(Fore.CYAN + "Enter the name of the chain to import: ").strip()
+            with open(f"{chain_name}_export.json", 'r') as f:
+                imported_data = json.load(f)
+                data["chains"][chain_name] = imported_data
+            print_colored(f"Chain {chain_name} imported successfully.", Fore.GREEN)
+            save_data()
         except FileNotFoundError:
-            print("No exported data file found.")
-            ImportBool = False
-            initcmd = input("$: ")
-            continue
-    elif initcmd == '.import.read':
-        if ImportBool == True:
-            print(file_read)
-            initcmd = input("$: ")
-        elif ImportBool == False:
-            print("No exported data file found.")
-            initcmd = input("$: ")
-            continue
-        else:
-            print("No exported data file found.")
-            initcmd = input("$: ")
-            continue
+            print_colored("No exported data file found.", Fore.RED)
+
     elif initcmd == '.display':
-        display_products = products[:10]
-        display_types = types[:10]
-        display_destinations = destinations[:10]
-        display_info = info[:10]
-        ask_display = int(input('Products, Types, Destinations, Info (1,2,3,4): '))
-        if ask_display == 1:
-            print(display_products)
-            initcmd = input("$: ")
-        elif ask_display == 2:
-            print(display_types)
-            initcmd = input("$: ")
-        elif ask_display == 3:
-            print(display_destinations)
-            initcmd = input("$: ")
-        elif ask_display == 4:
-            print(display_info)
-            initcmd = input("$: ")
-        else:
-            print("Not Found")
-            initcmd = input("$: ")
-            continue
+        for chain, details in data["chains"].items():
+            print_colored(f"Chain: {chain}", Fore.YELLOW)
+            for i, product in enumerate(details["products"]):
+                print_colored(f"  Product: {product}", Fore.WHITE)
+                print_colored(f"    Type: {details['types'][i]}", Fore.WHITE)
+                print_colored(f"    Destination: {details['destinations'][i]}", Fore.WHITE)
+                print_colored(f"    Info: {details['info'][i]}", Fore.WHITE)
+
     elif initcmd == '.len':
-        try:
-            print(len(products))
-            initcmd = input("$: ")
-        except:
-            print("No products found.")
-            initcmd = input("$: ")
-            continue
+        total_products = sum(len(details["products"]) for details in data["chains"].values())
+        print_colored(f"Total number of products: {total_products}", Fore.GREEN)
+
     elif initcmd == '.biome':
-        biomes = []
-        ask_biome = input("Biome Name: ")
-        ask_biome_type = input("Biome Type: ")
-        ask_biome_product = input("What Product To Link: ")
-        try:
-            ask_biome_product_index = products.index(ask_biome_product)
-        except NameError:
-            print("No Products Found")
-            initcmd = input("$: ")
-            continue
-        biomes.append(ask_biome)
-        biome_dict = {}
-        biome_dict[ask_biome_type] = products[ask_biome_product_index]
-        biome_bool = True
-        initcmd = input("$: ")
+        biome_name = input(Fore.CYAN + "Biome Name: ").strip()
+        biome_type = input(Fore.CYAN + "Biome Type: ").strip()
+        product_link = input(Fore.CYAN + "What Product To Link: ").strip()
+        found = False
+        for chain, details in data["chains"].items():
+            if product_link in details["products"]:
+                data["biomes"][biome_name] = {"type": biome_type, "product": product_link}
+                print_colored(f"Biome {biome_name} created and linked to {product_link}.", Fore.GREEN)
+                save_data()
+                found = True
+                break
+        if not found:
+            print_colored("Product not found.", Fore.RED)
+
     elif initcmd == '.biome.export':
-        textfile2 = open("biome.txt", "w")
-        for element2 in biome_dict:
-            textfile2.write(str(element2) + ' : ' + str(biome_dict[element2]) + '\n')
-        textfile2.close()
-        print('Done.')
-        initcmd = input("$: ")
+        biome_name = input(Fore.CYAN + "Enter the name of the biome to export: ").strip()
+        if biome_name in data["biomes"]:
+            with open(f"{biome_name}_biome_export.json", 'w') as f:
+                json.dump(data["biomes"][biome_name], f)
+            print_colored(f"Biome {biome_name} exported successfully.", Fore.GREEN)
+        else:
+            print_colored("Biome not found.", Fore.RED)
+
     elif initcmd == '.biome.import':
         try:
-            with open('biome.txt', 'r') as filetype3:
-                file_read3 = filetype3.read()
-                print(file_read3)
-                lines3 = filetype3.readlines()
-                initcmd = input("$: ")
+            biome_name = input(Fore.CYAN + "Enter the name of the biome to import: ").strip()
+            with open(f"{biome_name}_biome_export.json", 'r') as f:
+                imported_biome = json.load(f)
+                data["biomes"][biome_name] = imported_biome
+            print_colored(f"Biome {biome_name} imported successfully.", Fore.GREEN)
+            save_data()
         except FileNotFoundError:
-            print("No exported data file found.")
-            initcmd = input("$: ")
-            continue
-    elif initcmd == f'{chain}.mul.pro':
-        ask_mul_num_products = int(input("How many products: "))
-        for x in range(ask_mul_num_products):
-            mul_ask = input("What is the name of the product: ")
-            ask_mul_type_product = input("What is the shipping type of products: ")
-            ask_mul_destination = input("What is the final place of products: ")
-            products.append(mul_ask.strip())
-            types.append(ask_mul_type_product.strip())
-            destinations.append(ask_mul_destination.strip())
-            print("Created.")
-        initcmd = input("$: ")
+            print_colored("No exported biome file found.", Fore.RED)
+
+    elif initcmd.endswith('.mul.pro'):
+        chain = initcmd.split('.')[0]
+        if chain in data["chains"]:
+            num_products = int(input(Fore.CYAN + "How many products: "))
+            for _ in range(num_products):
+                product_name = input(Fore.CYAN + "What is the name of the product: ").strip()
+                product_type = input(Fore.CYAN + "What is the shipping type of products: ").strip()
+                destination = input(Fore.CYAN + "What is the final place of products: ").strip()
+                data["chains"][chain]["products"].append(product_name)
+                data["chains"][chain]["types"].append(product_type)
+                data["chains"][chain]["destinations"].append(destination)
+                data["chains"][chain]["info"].append("")
+                print_colored("Created.", Fore.GREEN)
+            save_data()
+        else:
+            print_colored("Chain not found.", Fore.RED)
+
     elif initcmd == '.break':
+        print_colored("Exiting...", Fore.RED)
         break
